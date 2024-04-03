@@ -1,0 +1,21 @@
+import Dip
+import GRDB
+import RxSwift
+import UIKit
+
+public protocol FMSService {}
+
+@AutoRegisterable
+public class FMSServiceProduction: FMSService {
+  @MemberwiseInitializer
+  public struct Dependencies {
+    let backgroundScheduler: SchedulerType
+    let databaseQueue: DatabaseQueue
+  }
+
+  public init(dependencies: Dependencies) {
+    self.dependencies = dependencies
+  }
+
+  let dependencies: Dependencies
+}

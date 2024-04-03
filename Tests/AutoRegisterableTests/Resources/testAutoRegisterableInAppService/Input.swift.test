@@ -1,0 +1,34 @@
+import Dip
+import FMSKit
+import GRDB
+import Model
+import RxSwift
+import UIBase
+import UIKit.UIApplication
+
+@AutoRegisterable
+public struct AppService {
+  struct Dependencies {
+    let databaseQueue: DatabaseQueue
+    let scheduledSync: ScheduledSync
+  }
+
+  init(dependencies: Dependencies) {
+    self.dependencies = dependencies
+  }
+
+  func scheduleSync() {
+    dependencies.scheduledSync.schedule()
+  }
+
+  func triggerSync(completion: (() -> Void)? = nil) {
+    dependencies.scheduledSync.trigger(completion: completion)
+  }
+
+  func cancelSync() {
+    dependencies.scheduledSync.cancel()
+  }
+
+  private let disposeBag = DisposeBag()
+  private let dependencies: Dependencies
+}

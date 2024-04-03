@@ -1,0 +1,36 @@
+import Dip
+import GRDB
+import RxSwift
+import UIKit
+
+public protocol FMSService {}
+public class FMSServiceProduction: FMSService {
+  @MemberwiseInitializer
+  public struct Dependencies {
+    let backgroundScheduler: SchedulerType
+    let databaseQueue: DatabaseQueue
+  }
+
+  public init(dependencies: Dependencies) {
+    self.dependencies = dependencies
+  }
+
+  let dependencies: Dependencies
+
+    public static func register<TargetType>(
+      in container: DependencyContainer,
+      scope: ComponentScope = .shared,
+      as type: TargetType.Type = FMSServiceProduction.self,
+      backgroundScheduler: SchedulerType? = nil,
+      databaseQueue: DatabaseQueue? = nil
+    ) {
+      container.register(scope) {
+        FMSServiceProduction(
+          dependencies: FMSServiceProduction.Dependencies(
+            backgroundScheduler: backgroundScheduler ?? (try! container.resolve()),
+            databaseQueue: databaseQueue ?? (try! container.resolve())
+          )
+        )  as! TargetType
+      }
+    }
+}
