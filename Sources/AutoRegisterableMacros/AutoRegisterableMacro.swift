@@ -19,36 +19,21 @@ public struct AutoRegisterableMacro: MemberMacro {
             .memberBlock
       )
           .members
-      
-      let initializers = members.compactMap { $0.decl.as(InitializerDeclSyntax.self) }
-
-    let parametersArray = initializers.map {
-      $0.signature.parameterClause.parameters
-        .map { (name: $0.firstName.text, type: $0.type.description) }
-    }
 
     let dependencyMembers = members
       .compactMap {
-        $0.as(MemberBlockItemSyntax.self)?
-          .decl.as(StructDeclSyntax.self)
+        $0.decl.as(StructDeclSyntax.self)
       }
       .first {
         $0.name.text == "Dependencies"
       }!
       .memberBlock.members
       
-      let patternBindings = dependencyMembers.compactMap { $0.as(MemberBlockItemSyntax.self)?
-        .decl.as(VariableDeclSyntax.self)?
+      let patternBindings = dependencyMembers.compactMap {
+          $0.decl.as(VariableDeclSyntax.self)?
         .bindings
-        .compactMap { $0.as(PatternBindingSyntax.self)}
+        .compactMap { $0 }
       }
-      
-      
-
-//      let parametersString = dependencyNames
-//
-//              .map { "\($0.name): \($0.type)? = nil" }.joined(separator: ",\n    ")
-//      }.joined(separator: ",\n    ")
 
     let parametersString =
       patternBindings.compactMap { $0.compactMap { (String($0.pattern.description), String($0.typeAnnotation!.type.description))  } }
