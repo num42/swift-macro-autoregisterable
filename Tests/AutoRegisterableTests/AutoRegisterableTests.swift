@@ -6,11 +6,11 @@ import XCTest
 #if canImport(AutoRegisterableMacros)
     import AutoRegisterableMacros
 
-    let testMacros: [String: Macro.Type] = [
-        "AutoRegisterable": AutoRegisterableMacro.self,
-    ]
-
     final class AutoRegisterableTests: XCTestCase {
+        let testMacros: [String: Macro.Type] = [
+            "AutoRegisterable": AutoRegisterableMacro.self,
+        ]
+
         func testAutoRegisterableInAppService() throws {
             testMacro(macros: testMacros)
         }

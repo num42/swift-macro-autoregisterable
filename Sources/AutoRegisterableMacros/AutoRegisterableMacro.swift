@@ -4,43 +4,62 @@ import SwiftSyntaxBuilder
 import SwiftSyntaxMacros
 
 public struct AutoRegisterableMacro: MemberMacro {
+    public enum MacroError: Error, CustomStringConvertible {
+        case requiresStructOrClass
+        case requiresDependencies
+
+        public var description: String {
+            switch self {
+            case .requiresStructOrClass:
+                "#AutoRegisterable requires a struct or class"
+            case .requiresDependencies:
+                "#AutoRegisterable requires a property using a type called \"Dependencies\""
+            }
+        }
+    }
+
     public static func expansion(
         of _: SwiftSyntax.AttributeSyntax,
         providingMembersOf declaration: some SwiftSyntax.DeclGroupSyntax,
         in _: some SwiftSyntaxMacros.MacroExpansionContext
     ) throws -> [SwiftSyntax.DeclSyntax] {
-        let className = declaration.as(ClassDeclSyntax.self)?.name.description ?? declaration.as(StructDeclSyntax.self)!.name.description
+        guard let objectName = declaration.as(ClassDeclSyntax.self)?.name.description
+            ?? declaration.as(StructDeclSyntax.self)?.name.description
+        else {
+            throw MacroError.requiresStructOrClass
+        }
 
-        let members = (
+        guard let members = (
             declaration
                 .as(ClassDeclSyntax.self)?
                 .memberBlock
-                ?? declaration.as(StructDeclSyntax.self)!
+                ?? declaration.as(StructDeclSyntax.self)?
                 .memberBlock
-        )
-        .members
-
-        let dependencyMembers = members
-            .compactMap {
-                $0.decl.as(StructDeclSyntax.self)
-            }
-            .first {
-                $0.name.text == "Dependencies"
-            }!
-            .memberBlock.members
-
-        let patternBindings = dependencyMembers.compactMap {
-            $0.decl.as(VariableDeclSyntax.self)?
-                .bindings
-                .compactMap { $0 }
+        )?
+            .members
+        else {
+            throw MacroError.requiresStructOrClass
         }
+
+        guard let dependencyMembers = members
+            .compactMap({ $0.decl.as(StructDeclSyntax.self) })
+            .first(where: { $0.name.text == "Dependencies" })
+        else {
+            throw MacroError.requiresDependencies
+        }
+
+        let patternBindings = dependencyMembers
+            .memberBlock.members
+            .compactMap {
+                $0.decl.as(VariableDeclSyntax.self)?
+                    .bindings
+                    .compactMap { $0 }
+            }
 
         let parametersString =
             patternBindings.compactMap { $0.compactMap { (String($0.pattern.description), String($0.typeAnnotation!.type.description)) } }
                 .reduce([], +)
-                .map {
-                    $0.appending(": \($1)? = nil")
-                }
+                .map { $0.appending(": \($1)? = nil") }
                 .joined(separator: ",\n")
                 .indentedBy("  ")
 
@@ -48,11 +67,9 @@ public struct AutoRegisterableMacro: MemberMacro {
             .reduce([], +)
 
         let dependenciesString =
-            dependencyNames.map {
-                $0.appending(": \($0) ?? (try! container.resolve())")
-            }
-            .joined(separator: ",\n")
-            .indentedBy("        ")
+            dependencyNames.map { $0.appending(": \($0) ?? (try! container.resolve())") }
+                .joined(separator: ",\n")
+                .indentedBy("        ")
 
         return [
             DeclSyntax(
@@ -60,12 +77,12 @@ public struct AutoRegisterableMacro: MemberMacro {
                 public static func register<TargetType>(
                   in container: DependencyContainer,
                   scope: ComponentScope = .shared,
-                  as type: TargetType.Type = \(className).self,
+                  as type: TargetType.Type = \(objectName).self,
                   \(parametersString)
                 ) {
                   container.register(scope) {
-                    \(className)(
-                      dependencies: \(className).Dependencies(
+                    \(objectName)(
+                      dependencies: \(objectName).Dependencies(
                         \(dependenciesString)
                       )
                     )  as! TargetType
