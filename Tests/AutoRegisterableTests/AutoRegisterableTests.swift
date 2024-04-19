@@ -18,5 +18,9 @@ import XCTest
         func testAutoRegisterableInFMSServiceProduction() throws {
             testMacro(macros: testMacros)
         }
+
+        func testStructWithoutDependencyEntries() throws {
+            testMacro(macros: testMacros)
+        }
     }
 #endif

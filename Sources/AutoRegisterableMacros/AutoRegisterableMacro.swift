@@ -77,7 +77,7 @@ public struct AutoRegisterableMacro: MemberMacro {
                 public static func register<TargetType>(
                   in container: DependencyContainer,
                   scope: ComponentScope = .shared,
-                  as type: TargetType.Type = \(objectName).self,
+                  as type: TargetType.Type = \(objectName).self\(dependencyNames.isEmpty ? "" : ",")
                   \(parametersString)
                 ) {
                   container.register(scope) {
