@@ -21,6 +21,7 @@ public struct AutoRegisterableMacro: MemberMacro {
     public static func expansion(
         of _: SwiftSyntax.AttributeSyntax,
         providingMembersOf declaration: some SwiftSyntax.DeclGroupSyntax,
+        conformingTo protocols: [TypeSyntax],
         in _: some SwiftSyntaxMacros.MacroExpansionContext
     ) throws -> [SwiftSyntax.DeclSyntax] {
         guard let objectName = declaration.as(ClassDeclSyntax.self)?.name.description
