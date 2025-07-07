@@ -21,6 +21,7 @@ public struct AutoRegisterableMacro: MemberMacro {
     public static func expansion(
         of _: SwiftSyntax.AttributeSyntax,
         providingMembersOf declaration: some SwiftSyntax.DeclGroupSyntax,
+        conformingTo protocols: [TypeSyntax],
         in _: some SwiftSyntaxMacros.MacroExpansionContext
     ) throws -> [SwiftSyntax.DeclSyntax] {
         guard let objectName = declaration.as(ClassDeclSyntax.self)?.name.description
@@ -59,7 +60,7 @@ public struct AutoRegisterableMacro: MemberMacro {
         let parametersString =
             patternBindings.compactMap { $0.compactMap { (String($0.pattern.description), String($0.typeAnnotation!.type.description)) } }
                 .reduce([], +)
-                .map { $0.appending(": \($1)? = nil") }
+                .map { $0 + (": \($1)? = nil") }
                 .joined(separator: ",\n")
                 .indentedBy("  ")
 
@@ -67,7 +68,7 @@ public struct AutoRegisterableMacro: MemberMacro {
             .reduce([], +)
 
         let dependenciesString =
-            dependencyNames.map { $0.appending(": \($0) ?? (try! container.resolve())") }
+            dependencyNames.map { $0 + (": \($0) ?? (try! container.resolve())") }
                 .joined(separator: ",\n")
                 .indentedBy("        ")
 
