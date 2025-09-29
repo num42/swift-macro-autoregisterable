@@ -1,17 +1,17 @@
 import MacroTester
 import SwiftSyntaxMacros
 import SwiftSyntaxMacrosTestSupport
-import XCTest
+import Testing
 
 #if canImport(AutoRegisterableMacros)
     import AutoRegisterableMacros
 
-    final class AutoRegisterableDiagnosticsTests: XCTestCase {
+    @Suite struct AutoRegisterableDiagnosticsTests {
         let testMacros: [String: Macro.Type] = [
             "AutoRegisterable": AutoRegisterableMacro.self,
         ]
 
-        func testEnumThrowsError() throws {
+        @Test func enumThrowsError() {
             assertMacroExpansion(
                 """
                 @AutoRegisterable
@@ -31,7 +31,7 @@ import XCTest
             )
         }
 
-        func testStructHasNoDependencies() throws {
+        @Test func structHasNoDependencies() {
             assertMacroExpansion(
                 """
                 @AutoRegisterable
