@@ -12,15 +12,15 @@ import Testing
         ]
 
         @Test func autoRegisterableInAppService() {
-            testMacro(macros: testMacros)
+            MacroTester.testMacro(macros: testMacros)
         }
 
         @Test func autoRegisterableInFMSServiceProduction() {
-            testMacro(macros: testMacros)
+            MacroTester.testMacro(macros: testMacros)
         }
 
         @Test func structWithoutDependencyEntries() {
-            testMacro(macros: testMacros)
+            MacroTester.testMacro(macros: testMacros)
         }
     }
 #endif
