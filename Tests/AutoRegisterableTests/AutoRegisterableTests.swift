@@ -1,26 +1,26 @@
 import MacroTester
 import SwiftSyntaxMacros
 import SwiftSyntaxMacrosTestSupport
-import XCTest
+import Testing
 
 #if canImport(AutoRegisterableMacros)
   import AutoRegisterableMacros
 
-  final class AutoRegisterableTests: XCTestCase {
+  @Suite struct AutoRegisterableTests {
     let testMacros: [String: Macro.Type] = [
       "AutoRegisterable": AutoRegisterableMacro.self
     ]
 
-    func testAutoRegisterableInAppService() throws {
-      testMacro(macros: testMacros)
+    @Test func autoRegisterableInAppService() {
+      MacroTester.testMacro(macros: testMacros)
     }
 
-    func testAutoRegisterableInFMSServiceProduction() throws {
-      testMacro(macros: testMacros)
+    @Test func autoRegisterableInFMSServiceProduction() {
+      MacroTester.testMacro(macros: testMacros)
     }
 
-    func testStructWithoutDependencyEntries() throws {
-      testMacro(macros: testMacros)
+    @Test func structWithoutDependencyEntries() {
+      MacroTester.testMacro(macros: testMacros)
     }
   }
 #endif
