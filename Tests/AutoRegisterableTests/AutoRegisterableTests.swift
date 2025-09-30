@@ -4,7 +4,7 @@ import SwiftSyntaxMacrosTestSupport
 import Testing
 
 #if canImport(AutoRegisterableMacros)
-    import AutoRegisterableMacros
+  import AutoRegisterableMacros
 
     @Suite struct AutoRegisterableTests {
         let testMacros: [String: Macro.Type] = [
