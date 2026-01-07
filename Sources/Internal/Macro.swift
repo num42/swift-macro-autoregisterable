@@ -1,6 +1,4 @@
-import SwiftCompilerPlugin
 import SwiftSyntax
-import SwiftSyntaxBuilder
 import SwiftSyntaxMacros
 
 public struct AutoRegisterableMacro: MemberMacro {
@@ -101,18 +99,5 @@ public struct AutoRegisterableMacro: MemberMacro {
           """
       )
     ]
-  }
-}
-
-@main
-struct AutoRegisterablePlugin: CompilerPlugin {
-  let providingMacros: [Macro.Type] = [
-    AutoRegisterableMacro.self
-  ]
-}
-
-extension String {
-  func indentedBy(_ indentation: String) -> String {
-    split(separator: "\n").joined(separator: "\n" + indentation)
   }
 }
