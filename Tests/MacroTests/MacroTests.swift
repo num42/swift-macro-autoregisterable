@@ -6,11 +6,12 @@ import Testing
 #if canImport(AutoRegisterableMacros)
   import AutoRegisterableMacros
 
-  @Suite struct AutoRegisterableTests {
-    let testMacros: [String: Macro.Type] = [
-      "AutoRegisterable": AutoRegisterableMacro.self
-    ]
+  let testMacros: [String: Macro.Type] = [
+    "AutoRegisterable": AutoRegisterableMacro.self
+  ]
 
+  @Suite
+  struct AutoRegisterableMacroTests {
     @Test func autoRegisterableInAppService() {
       MacroTester.testMacro(macros: testMacros)
     }
