@@ -1,32 +1,35 @@
+import SwiftDiagnostics
 import SwiftSyntax
 import SwiftSyntaxMacros
 
 public struct AutoRegisterableMacro: MemberMacro {
-  public enum MacroError: Error, CustomStringConvertible {
-    case requiresStructOrClass
-    case requiresDependencies
+  public enum MacroDiagnostic: String, DiagnosticMessage {
+    case requiresStructOrClass = "#AutoRegisterable requires a struct or class"
+    case requiresDependencies = "#AutoRegisterable requires a property using a type called \"Dependencies\""
+    case requiresTypedDependencies = "#AutoRegisterable requires explicit type annotations on Dependencies properties"
 
-    public var description: String {
-      switch self {
-      case .requiresStructOrClass:
-        "#AutoRegisterable requires a struct or class"
-      case .requiresDependencies:
-        "#AutoRegisterable requires a property using a type called \"Dependencies\""
-      }
+    public var message: String { rawValue }
+
+    public var diagnosticID: MessageID {
+      MessageID(domain: "AutoRegisterable", id: rawValue)
     }
+
+    public var severity: DiagnosticSeverity { .error }
   }
 
   public static func expansion(
-    of _: SwiftSyntax.AttributeSyntax,
+    of attribute: SwiftSyntax.AttributeSyntax,
     providingMembersOf declaration: some SwiftSyntax.DeclGroupSyntax,
     conformingTo protocols: [TypeSyntax],
-    in _: some SwiftSyntaxMacros.MacroExpansionContext
+    in context: some SwiftSyntaxMacros.MacroExpansionContext
   ) throws -> [SwiftSyntax.DeclSyntax] {
     guard
       let objectName = declaration.as(ClassDeclSyntax.self)?.name.description
         ?? declaration.as(StructDeclSyntax.self)?.name.description
     else {
-      throw MacroError.requiresStructOrClass
+      let diagnostic = Diagnostic(node: Syntax(attribute), message: MacroDiagnostic.requiresStructOrClass)
+      context.diagnose(diagnostic)
+      throw DiagnosticsError(diagnostics: [diagnostic])
     }
 
     guard
@@ -38,7 +41,9 @@ public struct AutoRegisterableMacro: MemberMacro {
         .memberBlock)?
         .members
     else {
-      throw MacroError.requiresStructOrClass
+      let diagnostic = Diagnostic(node: Syntax(attribute), message: MacroDiagnostic.requiresStructOrClass)
+      context.diagnose(diagnostic)
+      throw DiagnosticsError(diagnostics: [diagnostic])
     }
 
     guard
@@ -47,7 +52,9 @@ public struct AutoRegisterableMacro: MemberMacro {
         .compactMap({ $0.decl.as(StructDeclSyntax.self) })
         .first(where: { $0.name.text == "Dependencies" })
     else {
-      throw MacroError.requiresDependencies
+      let diagnostic = Diagnostic(node: Syntax(attribute), message: MacroDiagnostic.requiresDependencies)
+      context.diagnose(diagnostic)
+      throw DiagnosticsError(diagnostics: [diagnostic])
     }
 
     let patternBindings = dependencyMembers
@@ -57,6 +64,16 @@ public struct AutoRegisterableMacro: MemberMacro {
           .bindings
           .compactMap { $0 }
       }
+
+    guard
+      patternBindings
+        .reduce([], +)
+        .allSatisfy({ $0.typeAnnotation != nil })
+    else {
+      let diagnostic = Diagnostic(node: Syntax(attribute), message: MacroDiagnostic.requiresTypedDependencies)
+      context.diagnose(diagnostic)
+      throw DiagnosticsError(diagnostics: [diagnostic])
+    }
 
     let parametersString =
       patternBindings.compactMap {

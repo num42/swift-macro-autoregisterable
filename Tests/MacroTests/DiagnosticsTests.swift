@@ -22,7 +22,7 @@ import Testing
           """,
         diagnostics: [
           .init(
-            message: AutoRegisterableMacro.MacroError.requiresStructOrClass.description,
+            message: AutoRegisterableMacro.MacroDiagnostic.requiresStructOrClass.message,
             line: 1,
             column: 1
           )
@@ -42,7 +42,35 @@ import Testing
           """,
         diagnostics: [
           .init(
-            message: AutoRegisterableMacro.MacroError.requiresDependencies.description,
+            message: AutoRegisterableMacro.MacroDiagnostic.requiresDependencies.message,
+            line: 1,
+            column: 1
+          )
+        ],
+        macros: testMacros
+      )
+    }
+
+    @Test func dependenciesMustBeTyped() {
+      assertMacroExpansion(
+        """
+        @AutoRegisterable
+        struct AStruct {
+          struct Dependencies {
+            let service = Service()
+          }
+        }
+        """,
+        expandedSource: """
+          struct AStruct {
+            struct Dependencies {
+              let service = Service()
+            }
+          }
+          """,
+        diagnostics: [
+          .init(
+            message: AutoRegisterableMacro.MacroDiagnostic.requiresTypedDependencies.message,
             line: 1,
             column: 1
           )
