@@ -1,6 +1,7 @@
-import SwiftDiagnostics
-import SwiftSyntax
-import SwiftSyntaxMacros
+internal import MacroHelper
+public import SwiftDiagnostics
+public import SwiftSyntax
+public import SwiftSyntaxMacros
 
 public struct AutoRegisterableMacro: MemberMacro {
   public enum MacroDiagnostic: String, DiagnosticMessage {
@@ -25,10 +26,7 @@ public struct AutoRegisterableMacro: MemberMacro {
     conformingTo protocols: [TypeSyntax],
     in context: some SwiftSyntaxMacros.MacroExpansionContext
   ) throws -> [SwiftSyntax.DeclSyntax] {
-    guard
-      let objectName = declaration.as(ClassDeclSyntax.self)?.name.description
-        ?? declaration.as(StructDeclSyntax.self)?.name.description
-    else {
+    guard let objectName = declaration.classOrStructName else {
       let diagnostic = Diagnostic(
         node: Syntax(attribute), message: MacroDiagnostic.requiresStructOrClass)
       context.diagnose(diagnostic)
@@ -36,13 +34,7 @@ public struct AutoRegisterableMacro: MemberMacro {
     }
 
     guard
-      let members =
-        (declaration
-        .as(ClassDeclSyntax.self)?
-        .memberBlock
-        ?? declaration.as(StructDeclSyntax.self)?
-        .memberBlock)?
-        .members
+      let members = declaration.classOrStructMemberBlock?.members
     else {
       let diagnostic = Diagnostic(
         node: Syntax(attribute), message: MacroDiagnostic.requiresStructOrClass)
@@ -73,7 +65,7 @@ public struct AutoRegisterableMacro: MemberMacro {
     guard
       patternBindings
         .reduce([], +)
-        .allSatisfy({ $0.typeAnnotation != nil })
+        .allSatisfy { $0.typeAnnotation != nil }
     else {
       let diagnostic = Diagnostic(
         node: Syntax(attribute), message: MacroDiagnostic.requiresTypedDependencies)
@@ -89,8 +81,7 @@ public struct AutoRegisterableMacro: MemberMacro {
       }
       .reduce([], +)
       .map { $0 + (": \($1)? = nil") }
-      .joined(separator: ",\n")
-      .indentedBy("  ")
+      .joined(separator: ",\n  ")
 
     let dependencyNames = patternBindings.compactMap {
       $0.compactMap { String($0.pattern.description) }
@@ -99,8 +90,7 @@ public struct AutoRegisterableMacro: MemberMacro {
 
     let dependenciesString =
       dependencyNames.map { $0 + (": \($0) ?? (try! container.resolve())") }
-      .joined(separator: ",\n")
-      .indentedBy("        ")
+      .joined(separator: ",\n        ")
 
     return [
       DeclSyntax(
