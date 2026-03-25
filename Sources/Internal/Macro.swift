@@ -65,7 +65,7 @@ public struct AutoRegisterableMacro: MemberMacro {
     guard
       patternBindings
         .reduce([], +)
-        .allSatisfy { $0.typeAnnotation != nil }
+        .allSatisfy({ $0.typeAnnotation != Optional<TypeAnnotationSyntax>.none })
     else {
       let diagnostic = Diagnostic(
         node: Syntax(attribute), message: MacroDiagnostic.requiresTypedDependencies)
