@@ -5,11 +5,11 @@ public import SwiftSyntaxMacros
 
 public struct AutoRegisterableMacro: MemberMacro {
   public enum MacroDiagnostic: String, DiagnosticMessage {
-    case requiresStructOrClass = "#AutoRegisterable requires a struct or class"
+    case requiresStructOrClass = "@AutoRegisterable requires a struct or class"
     case requiresDependencies =
-      "#AutoRegisterable requires a property using a type called \"Dependencies\""
+      "@AutoRegisterable requires a property using a type called \"Dependencies\""
     case requiresTypedDependencies =
-      "#AutoRegisterable requires explicit type annotations on Dependencies properties"
+      "@AutoRegisterable requires explicit type annotations on Dependencies properties"
 
     public var message: String { rawValue }
 
@@ -21,15 +21,16 @@ public struct AutoRegisterableMacro: MemberMacro {
   }
 
   public static func expansion(
-    of attribute: SwiftSyntax.AttributeSyntax,
-    providingMembersOf declaration: some SwiftSyntax.DeclGroupSyntax,
+    of attribute: AttributeSyntax,
+    providingMembersOf declaration: some DeclGroupSyntax,
     conformingTo protocols: [TypeSyntax],
-    in context: some SwiftSyntaxMacros.MacroExpansionContext
-  ) throws -> [SwiftSyntax.DeclSyntax] {
+    in context: some MacroExpansionContext
+  ) throws -> [DeclSyntax] {
     guard let objectName = declaration.classOrStructName else {
       let diagnostic = Diagnostic(
-        node: Syntax(attribute), message: MacroDiagnostic.requiresStructOrClass)
-      context.diagnose(diagnostic)
+        node: Syntax(attribute),
+        message: MacroDiagnostic.requiresStructOrClass
+      )
       throw DiagnosticsError(diagnostics: [diagnostic])
     }
 
@@ -37,8 +38,9 @@ public struct AutoRegisterableMacro: MemberMacro {
       let members = declaration.classOrStructMemberBlock?.members
     else {
       let diagnostic = Diagnostic(
-        node: Syntax(attribute), message: MacroDiagnostic.requiresStructOrClass)
-      context.diagnose(diagnostic)
+        node: Syntax(attribute),
+        message: MacroDiagnostic.requiresStructOrClass
+      )
       throw DiagnosticsError(diagnostics: [diagnostic])
     }
 
@@ -49,8 +51,9 @@ public struct AutoRegisterableMacro: MemberMacro {
         .first(where: { $0.name.text == "Dependencies" })
     else {
       let diagnostic = Diagnostic(
-        node: Syntax(attribute), message: MacroDiagnostic.requiresDependencies)
-      context.diagnose(diagnostic)
+        node: Syntax(attribute),
+        message: MacroDiagnostic.requiresDependencies
+      )
       throw DiagnosticsError(diagnostics: [diagnostic])
     }
 
@@ -68,8 +71,9 @@ public struct AutoRegisterableMacro: MemberMacro {
         .allSatisfy({ $0.typeAnnotation != Optional<TypeAnnotationSyntax>.none })
     else {
       let diagnostic = Diagnostic(
-        node: Syntax(attribute), message: MacroDiagnostic.requiresTypedDependencies)
-      context.diagnose(diagnostic)
+        node: Syntax(attribute),
+        message: MacroDiagnostic.requiresTypedDependencies
+      )
       throw DiagnosticsError(diagnostics: [diagnostic])
     }
 
