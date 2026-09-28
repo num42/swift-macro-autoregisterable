@@ -1,16 +1,11 @@
-internal import MacroTester
-internal import SwiftSyntaxMacros
-internal import SwiftSyntaxMacrosTestSupport
+internal import SwiftSyntaxMacrosGenericTestSupport
 internal import Testing
 
 #if canImport(AutoRegisterableMacros)
   import AutoRegisterableMacros
 
-  @Suite struct AutoRegisterableDiagnosticsTests {
-    let testMacros: [String: Macro.Type] = [
-      "AutoRegisterable": AutoRegisterableMacro.self
-    ]
-
+  @Suite
+  struct AutoRegisterableDiagnosticsTests {
     @Test func enumThrowsError() {
       assertMacroExpansion(
         """
