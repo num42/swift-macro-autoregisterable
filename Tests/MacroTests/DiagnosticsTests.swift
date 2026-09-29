@@ -1,3 +1,4 @@
+internal import MacroTestHelper
 internal import SwiftSyntaxMacrosGenericTestSupport
 internal import Testing
 
@@ -7,7 +8,7 @@ internal import Testing
   @Suite
   struct AutoRegisterableDiagnosticsTests {
     @Test func enumThrowsError() {
-      assertMacroExpansion(
+      MacroTestHelper.assertMacroExpansion(
         """
         @AutoRegisterable
         enum AnEnum {}
@@ -27,7 +28,7 @@ internal import Testing
     }
 
     @Test func structHasNoDependencies() {
-      assertMacroExpansion(
+      MacroTestHelper.assertMacroExpansion(
         """
         @AutoRegisterable
         struct AStruct {}
@@ -47,7 +48,7 @@ internal import Testing
     }
 
     @Test func dependenciesMustBeTyped() {
-      assertMacroExpansion(
+      MacroTestHelper.assertMacroExpansion(
         """
         @AutoRegisterable
         struct AStruct {
